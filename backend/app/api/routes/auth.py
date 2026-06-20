@@ -20,7 +20,10 @@ from app.schemas.auth import LoginRequest, TokenResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 # Prevent timing differences between existing and missing users during login failure paths.
-DUMMY_PASSWORD_HASH = hash_password("dummy-password")
+DUMMY_PASSWORD_HASH = (
+    "bcrypt$$2b$$12$$6UzgM099ff9EjRhU8Iyf0.gFgkj6KT0.wtSLqxNKIbn4MlGtptzMS"
+    .replace("$$", "$")
+)
 
 
 def _get_rate_limit_key(request: Request, email: str) -> str:
@@ -66,7 +69,6 @@ def login(
     stored_password_hash = user.password_hash if user else DUMMY_PASSWORD_HASH
     if user is None or not verify_password(payload.password, stored_password_hash):
         attempts.append(now)
-        del attempts[:-settings.login_rate_limit_attempts]
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciais inválidas.",

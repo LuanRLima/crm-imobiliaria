@@ -113,7 +113,11 @@ def move_lead(
             status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado."
         )
 
-    entry = db.scalar(select(PipelineEntry).where(PipelineEntry.lead_id == lead_id))
+    entry = db.scalar(
+        select(PipelineEntry)
+        .options(selectinload(PipelineEntry.stage))
+        .where(PipelineEntry.lead_id == lead_id)
+    )
     if entry is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -131,9 +135,6 @@ def move_lead(
             detail="Etapa do pipeline não encontrada.",
         )
 
-    previous_stage = db.scalar(
-        select(PipelineStage).where(PipelineStage.id == entry.stage_id)
-    )
     entry.stage_id = stage.id
     entry.assigned_to_id = payload.assigned_to_id or entry.assigned_to_id
     entry.next_action_at = payload.next_action_at
@@ -145,7 +146,7 @@ def move_lead(
         action="moved",
         payload={
             "lead_id": lead_id,
-            "from_stage": previous_stage.name if previous_stage else None,
+            "from_stage": entry.stage.name if entry.stage else None,
             "to_stage": stage.name,
         },
     )
