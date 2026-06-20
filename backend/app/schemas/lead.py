@@ -54,3 +54,5 @@ class LeadResponse(BaseModel):
     current_stage: str | None = None
     created_at: datetime
     updated_at: datetime
+
+    model_config = {"from_attributes": True}
