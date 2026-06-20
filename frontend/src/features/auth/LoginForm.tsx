@@ -6,8 +6,8 @@ type LoginFormProps = {
 }
 
 export function LoginForm({ onSubmit, loading }: LoginFormProps) {
-  const [email, setEmail] = useState("admin@crmimobiliaria.local")
-  const [password, setPassword] = useState("Admin123!")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
   return (
     <form
@@ -18,13 +18,22 @@ export function LoginForm({ onSubmit, loading }: LoginFormProps) {
       }}
     >
       <h2>Login</h2>
+      <p>
+        Use as credenciais seed descritas no README apenas para ambiente local.
+      </p>
       <label>
         E-mail
-        <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" />
+        <input
+          placeholder="admin@crmimobiliaria.local"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          type="email"
+        />
       </label>
       <label>
         Senha
         <input
+          placeholder="••••••••"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           type="password"
