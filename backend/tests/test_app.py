@@ -6,6 +6,9 @@ from app.db.session import build_engine
 from app.main import create_app
 from app.services.bootstrap import seed_defaults
 
+ADMIN_EMAIL = "admin@crmimobiliaria.local"
+ADMIN_PASSWORD = "Admin123!"
+
 
 def build_client(database_url: str) -> TestClient:
     engine = build_engine(database_url)
@@ -27,7 +30,7 @@ def build_client(database_url: str) -> TestClient:
 def login(client: TestClient) -> dict[str, str]:
     response = client.post(
         "/api/v1/auth/login",
-        json={"email": "admin@crmimobiliaria.local", "password": "Admin123!"},
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
     )
     token = response.json()["access_token"]
     return {"Authorization": "Bearer " + token}
@@ -45,11 +48,11 @@ def test_login_success_and_failure(tmp_path):
 
     success = client.post(
         "/api/v1/auth/login",
-        json={"email": "admin@crmimobiliaria.local", "password": "Admin123!"},
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
     )
     failure = client.post(
         "/api/v1/auth/login",
-        json={"email": "admin@crmimobiliaria.local", "password": "senha-incorreta"},
+        json={"email": ADMIN_EMAIL, "password": "senha-incorreta"},
     )
 
     assert success.status_code == 200

@@ -5,6 +5,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user, get_db
+from app.core.config import get_settings
 from app.core.security import create_access_token, hash_token, verify_password
 from app.db.models import AuthSession, User
 from app.schemas.auth import LoginRequest, TokenResponse, UserResponse
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
+    settings = get_settings()
     user = db.scalar(select(User).where(User.email == payload.email.lower()))
 
     if user is None or not verify_password(payload.password, user.password_hash):
@@ -27,7 +29,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
     )
 
     raw_token = create_access_token()
-    expires_at = datetime.now(UTC) + timedelta(hours=12)
+    expires_at = datetime.now(UTC) + timedelta(hours=settings.session_ttl_hours)
     db.add(
         AuthSession(
             user_id=user.id,

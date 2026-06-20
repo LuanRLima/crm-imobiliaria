@@ -11,6 +11,10 @@ def _build_cors_origins() -> list[str]:
     return ["http://localhost:5173", "http://127.0.0.1:5173"]
 
 
+def _environment_name() -> str:
+    return os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "development")).lower()
+
+
 def _build_database_url() -> str:
     database_url = os.getenv("DATABASE_URL")
     if database_url:
@@ -25,12 +29,18 @@ def _build_database_url() -> str:
     if host and database and user and password:
         return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{database}"
 
+    if _environment_name() in {"production", "prod", "staging"}:
+        raise RuntimeError(
+            "DATABASE_URL ou variáveis POSTGRES_* são obrigatórias fora do ambiente local."
+        )
+
     return "sqlite:///./crm.db"
 
 
 @dataclass(frozen=True)
 class Settings:
     app_name: str = "CRM Imobiliária API"
+    app_env: str = _environment_name()
     api_prefix: str = "/api/v1"
     database_url: str = _build_database_url()
     cors_origins: list[str] = field(default_factory=_build_cors_origins)
@@ -38,6 +48,7 @@ class Settings:
         "SEED_ADMIN_EMAIL", "admin@crmimobiliaria.local"
     )
     seed_admin_password: str = os.getenv("SEED_ADMIN_PASSWORD", "Admin123!")
+    session_ttl_hours: int = int(os.getenv("SESSION_TTL_HOURS", "12"))
 
 
 @lru_cache
