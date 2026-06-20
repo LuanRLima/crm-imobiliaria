@@ -43,16 +43,17 @@ def create_stage(
         is_active=payload.is_active,
     )
     db.add(stage)
+    db.commit()
+    db.refresh(stage)
     register_audit_log(
         db,
         actor_id=current_user.id,
         entity="pipeline_stage",
-        entity_id=0,
+        entity_id=stage.id,
         action="created",
         payload={"name": payload.name, "position": payload.position},
     )
     db.commit()
-    db.refresh(stage)
     return PipelineStageResponse.model_validate(stage)
 
 

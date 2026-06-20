@@ -3,6 +3,14 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 
+def _build_cors_origins() -> list[str]:
+    configured_origins = os.getenv("CORS_ORIGINS")
+    if configured_origins:
+        return [origin.strip() for origin in configured_origins.split(",") if origin.strip()]
+
+    return ["http://localhost:5173", "http://127.0.0.1:5173"]
+
+
 def _build_database_url() -> str:
     database_url = os.getenv("DATABASE_URL")
     if database_url:
@@ -25,9 +33,7 @@ class Settings:
     app_name: str = "CRM Imobiliária API"
     api_prefix: str = "/api/v1"
     database_url: str = _build_database_url()
-    cors_origins: list[str] = field(
-        default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"]
-    )
+    cors_origins: list[str] = field(default_factory=_build_cors_origins)
     seed_admin_email: str = os.getenv(
         "SEED_ADMIN_EMAIL", "admin@crmimobiliaria.local"
     )
