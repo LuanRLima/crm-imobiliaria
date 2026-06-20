@@ -118,20 +118,24 @@ def update_lead(
 
     changes = payload.model_dump(exclude_unset=True)
     previous_values = {field: getattr(lead, field) for field in changes}
-    for field, value in changes.items():
-        setattr(lead, field, value)
+    try:
+        for field, value in changes.items():
+            setattr(lead, field, value)
 
-    register_audit_log(
-        db,
-        actor_id=current_user.id,
-        entity="lead",
-        entity_id=lead.id,
-        action="updated",
-        payload={
-            "before": previous_values,
-            "after": {field: getattr(lead, field) for field in changes},
-        },
-    )
-    db.commit()
+        register_audit_log(
+            db,
+            actor_id=current_user.id,
+            entity="lead",
+            entity_id=lead.id,
+            action="updated",
+            payload={
+                "before": previous_values,
+                "after": {field: getattr(lead, field) for field in changes},
+            },
+        )
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        raise
     db.refresh(lead)
     return to_lead_response(lead)

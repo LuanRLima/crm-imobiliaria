@@ -19,6 +19,7 @@ from app.db.models import AuthSession, User
 from app.schemas.auth import LoginRequest, TokenResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+DUMMY_PASSWORD_HASH = hash_password("dummy-password")
 
 
 def _get_rate_limit_key(request: Request, email: str) -> str:
@@ -61,7 +62,8 @@ def login(
     settings = get_settings()
     key, attempts, now = _consume_login_attempt(request, payload.email)
     user = db.scalar(select(User).where(User.email == payload.email.lower()))
-    if user is None or not verify_password(payload.password, user.password_hash):
+    stored_password_hash = user.password_hash if user else DUMMY_PASSWORD_HASH
+    if user is None or not verify_password(payload.password, stored_password_hash):
         attempts.append(now)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

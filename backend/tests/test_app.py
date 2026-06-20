@@ -71,7 +71,7 @@ def test_login_success_and_failure(tmp_path):
     )
     failure = client.post(
         "/api/v1/auth/login",
-        json={"email": ADMIN_EMAIL, "password": "senha-incorreta"},
+        json={"email": ADMIN_EMAIL, "password": "wrong-password"},
     )
 
     assert success.status_code == 200
@@ -108,13 +108,13 @@ def test_login_rate_limit_blocks_repeated_failures(tmp_path):
     for _ in range(5):
         response = client.post(
             "/api/v1/auth/login",
-            json={"email": ADMIN_EMAIL, "password": "senha-incorreta"},
+            json={"email": ADMIN_EMAIL, "password": "wrong-password"},
         )
         assert response.status_code == 401
 
     blocked = client.post(
         "/api/v1/auth/login",
-        json={"email": ADMIN_EMAIL, "password": "senha-incorreta"},
+        json={"email": ADMIN_EMAIL, "password": "wrong-password"},
     )
 
     assert blocked.status_code == 429
