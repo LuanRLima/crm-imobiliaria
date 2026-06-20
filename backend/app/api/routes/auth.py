@@ -22,11 +22,13 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 def _get_rate_limit_key(request: Request, email: str) -> str:
+    """Build a per-client-per-email rate limit key for login attempts."""
     client_host = request.client.host if request.client else "unknown"
     return f"{client_host}:{email.lower()}"
 
 
 def _consume_login_attempt(request: Request, email: str) -> tuple[str, list[float], float]:
+    """Load and prune login attempts, then return the key, bucket and current time."""
     settings = get_settings()
     limiter = getattr(request.app.state, "login_rate_limiter", {})
     request.app.state.login_rate_limiter = limiter
@@ -45,6 +47,7 @@ def _consume_login_attempt(request: Request, email: str) -> tuple[str, list[floa
 
 
 def _reset_login_attempts(request: Request, key: str) -> None:
+    """Clear the login rate limit bucket after a successful authentication."""
     limiter = getattr(request.app.state, "login_rate_limiter", {})
     limiter.pop(key, None)
 

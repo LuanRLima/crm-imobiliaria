@@ -47,6 +47,7 @@ def login(
 
 
 def legacy_hash_password(password: str) -> str:
+    """Generate a legacy PBKDF2 hash so migration compatibility can be tested."""
     salt = b"legacy-salt"
     digest = pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100_000)
     return f"{urlsafe_b64encode(salt).decode()}${digest.hex()}"

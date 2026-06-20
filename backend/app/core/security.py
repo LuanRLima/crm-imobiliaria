@@ -18,6 +18,7 @@ def hash_password(password: str) -> str:
 
 
 def _verify_legacy_pbkdf2_password(password: str, password_hash: str) -> bool:
+    """Verify passwords stored in the pre-bcrypt PBKDF2 format during migration."""
     encoded_salt, stored_digest = password_hash.split("$", maxsplit=1)
     salt = urlsafe_b64decode(encoded_salt.encode("utf-8"))
     digest = pbkdf2_hmac("sha256", _ensure_bytes(password), salt, 100_000).hex()
@@ -38,6 +39,7 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 def password_hash_needs_upgrade(password_hash: str) -> bool:
+    """Return whether a stored password hash is still in the legacy format."""
     return not password_hash.startswith(BCRYPT_PREFIX)
 
 

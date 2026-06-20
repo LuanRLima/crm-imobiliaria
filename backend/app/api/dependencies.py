@@ -54,9 +54,11 @@ def get_current_user(
 
 
 def require_roles(*roles: str):
+    """Build a dependency that only allows authenticated users with the given roles."""
     allowed_roles = set(roles)
 
     def dependency(current_user: User = Depends(get_current_user)) -> User:
+        """Validate the current user role against the allowed RBAC set."""
         if current_user.role not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
