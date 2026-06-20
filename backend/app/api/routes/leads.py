@@ -9,6 +9,15 @@ from app.schemas.lead import LeadCreate, LeadResponse, LeadUpdate
 from app.services.audit import register_audit_log
 
 router = APIRouter(prefix="/leads", tags=["leads"])
+AUDITABLE_LEAD_FIELDS = {
+    "name",
+    "email",
+    "phone",
+    "source",
+    "status",
+    "notes",
+    "broker_id",
+}
 
 
 def to_lead_response(lead: Lead) -> LeadResponse:
@@ -116,7 +125,11 @@ def update_lead(
             status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado."
         )
 
-    changes = payload.model_dump(exclude_unset=True)
+    changes = {
+        field: value
+        for field, value in payload.model_dump(exclude_unset=True).items()
+        if field in AUDITABLE_LEAD_FIELDS
+    }
     previous_values = {field: getattr(lead, field) for field in changes}
     try:
         for field, value in changes.items():

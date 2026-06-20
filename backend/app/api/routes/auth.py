@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from dataclasses import dataclass
 from time import monotonic
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -20,10 +21,14 @@ from app.schemas.auth import LoginRequest, TokenResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 # Prevent timing differences between existing and missing users during login failure paths.
-DUMMY_PASSWORD_HASH = (
-    "bcrypt$$2b$$12$$6UzgM099ff9EjRhU8Iyf0.gFgkj6KT0.wtSLqxNKIbn4MlGtptzMS"
-    .replace("$$", "$")
-)
+DUMMY_PASSWORD_HASH = "bcrypt$2b$12$6UzgM099ff9EjRhU8Iyf0.gFgkj6KT0.wtSLqxNKIbn4MlGtptzMS"
+
+
+@dataclass
+class LoginAttemptWindow:
+    key: str
+    attempts: list[float]
+    now: float
 
 
 def _get_rate_limit_key(request: Request, email: str) -> str:
@@ -32,7 +37,7 @@ def _get_rate_limit_key(request: Request, email: str) -> str:
     return f"{client_host}:{email.lower()}"
 
 
-def _consume_login_attempt(request: Request, email: str) -> tuple[str, list[float], float]:
+def _consume_login_attempt(request: Request, email: str) -> LoginAttemptWindow:
     """Manage the in-memory MVP login bucket and return its key, entries and timestamp."""
     settings = get_settings()
     limiter = getattr(request.app.state, "login_rate_limiter", {})
@@ -48,7 +53,7 @@ def _consume_login_attempt(request: Request, email: str) -> tuple[str, list[floa
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Muitas tentativas de login. Tente novamente em alguns minutos.",
         )
-    return key, attempts, now
+    return LoginAttemptWindow(key=key, attempts=attempts, now=now)
 
 
 def _reset_login_attempts(request: Request, key: str) -> None:
@@ -64,11 +69,11 @@ def login(
     db: Session = Depends(get_db),
 ) -> TokenResponse:
     settings = get_settings()
-    key, attempts, now = _consume_login_attempt(request, payload.email)
+    attempt_window = _consume_login_attempt(request, payload.email)
     user = db.scalar(select(User).where(User.email == payload.email.lower()))
     stored_password_hash = user.password_hash if user else DUMMY_PASSWORD_HASH
     if user is None or not verify_password(payload.password, stored_password_hash):
-        attempts.append(now)
+        attempt_window.attempts.append(attempt_window.now)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciais inválidas.",
@@ -96,7 +101,7 @@ def login(
         db.rollback()
         raise
 
-    _reset_login_attempts(request, key)
+    _reset_login_attempts(request, attempt_window.key)
     return TokenResponse(
         access_token=raw_token,
         token_type="bearer",

@@ -135,6 +135,7 @@ def move_lead(
             detail="Etapa do pipeline não encontrada.",
         )
 
+    previous_stage_name = entry.stage.name if entry.stage else None
     entry.stage_id = stage.id
     entry.assigned_to_id = payload.assigned_to_id or entry.assigned_to_id
     entry.next_action_at = payload.next_action_at
@@ -146,7 +147,7 @@ def move_lead(
         action="moved",
         payload={
             "lead_id": lead_id,
-            "from_stage": entry.stage.name if entry.stage else None,
+            "from_stage": previous_stage_name,
             "to_stage": stage.name,
         },
     )
