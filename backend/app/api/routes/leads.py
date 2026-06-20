@@ -51,38 +51,43 @@ def create_lead(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> LeadResponse:
-    lead = Lead(
-        name=payload.name,
-        email=payload.email,
-        phone=payload.phone,
-        source=payload.source,
-        notes=payload.notes,
-        broker_id=payload.broker_id,
-    )
-    db.add(lead)
-    db.flush()
-
-    initial_stage = db.scalar(
-        select(PipelineStage).where(PipelineStage.is_active.is_(True)).order_by(
-            PipelineStage.position.asc()
+    try:
+        lead = Lead(
+            name=payload.name,
+            email=payload.email,
+            phone=payload.phone,
+            source=payload.source,
+            notes=payload.notes,
+            broker_id=payload.broker_id,
         )
-    )
-    if initial_stage is None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Nenhuma etapa ativa configurada para o pipeline.",
-        )
+        db.add(lead)
+        db.flush()
 
-    db.add(PipelineEntry(lead_id=lead.id, stage_id=initial_stage.id))
-    register_audit_log(
-        db,
-        actor_id=current_user.id,
-        entity="lead",
-        entity_id=lead.id,
-        action="created",
-        payload={"source": lead.source, "stage": initial_stage.name},
-    )
-    db.commit()
+        initial_stage = db.scalar(
+            select(PipelineStage).where(PipelineStage.is_active.is_(True)).order_by(
+                PipelineStage.position.asc()
+            )
+        )
+        if initial_stage is None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Nenhuma etapa ativa configurada para o pipeline.",
+            )
+
+        db.add(PipelineEntry(lead_id=lead.id, stage_id=initial_stage.id))
+        register_audit_log(
+            db,
+            actor_id=current_user.id,
+            entity="lead",
+            entity_id=lead.id,
+            action="created",
+            payload={"source": lead.source, "stage": initial_stage.name},
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
     db.refresh(lead)
     db.refresh(lead, attribute_names=["pipeline_entry"])
     return to_lead_response(lead)
@@ -108,6 +113,7 @@ def update_lead(
         )
 
     changes = payload.model_dump(exclude_unset=True)
+    previous_values = {field: getattr(lead, field) for field in changes}
     for field, value in changes.items():
         setattr(lead, field, value)
 
@@ -117,7 +123,10 @@ def update_lead(
         entity="lead",
         entity_id=lead.id,
         action="updated",
-        payload=changes,
+        payload={
+            "before": previous_values,
+            "after": {field: getattr(lead, field) for field in changes},
+        },
     )
     db.commit()
     db.refresh(lead)

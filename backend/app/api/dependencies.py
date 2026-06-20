@@ -20,10 +20,10 @@ def get_db(request: Request):
         db.close()
 
 
-def get_current_user(
+def get_current_auth_session(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
-) -> User:
+) -> AuthSession:
     if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -44,4 +44,24 @@ def get_current_user(
             detail="Token inválido ou expirado.",
         )
 
+    return auth_session
+
+
+def get_current_user(
+    auth_session: AuthSession = Depends(get_current_auth_session),
+) -> User:
     return auth_session.user
+
+
+def require_roles(*roles: str):
+    allowed_roles = set(roles)
+
+    def dependency(current_user: User = Depends(get_current_user)) -> User:
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Permissão insuficiente para esta operação.",
+            )
+        return current_user
+
+    return dependency

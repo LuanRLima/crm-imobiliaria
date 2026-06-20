@@ -49,6 +49,10 @@ class Settings:
     )
     seed_admin_password: str = os.getenv("SEED_ADMIN_PASSWORD", "Admin123!")
     session_ttl_hours: int = int(os.getenv("SESSION_TTL_HOURS", "12"))
+    login_rate_limit_attempts: int = int(os.getenv("LOGIN_RATE_LIMIT_ATTEMPTS", "5"))
+    login_rate_limit_window_seconds: int = int(
+        os.getenv("LOGIN_RATE_LIMIT_WINDOW_SECONDS", "300")
+    )
 
 
 @lru_cache

@@ -150,6 +150,9 @@ Response:
 }
 ```
 
+#### `POST /api/v1/auth/logout`
+Revoga a sessão atual do bearer token autenticado.
+
 #### `POST /api/v1/leads`
 ```json
 {
@@ -174,10 +177,14 @@ Retorna board agrupado por etapa.
 - e-mail válido quando informado.
 - telefone ou e-mail é obrigatório no lead.
 - login exige credenciais válidas.
+- login aplica rate limit por cliente/e-mail após falhas repetidas.
+- criação de etapa é restrita ao perfil `manager`.
 
 ### Códigos de erro padrão
 - `401` autenticação inválida.
+- `403` operação sem permissão.
 - `404` recurso não encontrado.
+- `429` muitas tentativas de login.
 - `409` conflito de negócio/configuração.
 - `422` payload inválido.
 
