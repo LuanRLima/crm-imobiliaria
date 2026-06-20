@@ -1,0 +1,136 @@
+.layout {
+  min-height: 100vh;
+  padding: 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.hero,
+.dashboard-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.dashboard-grid {
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  align-items: start;
+}
+
+.column,
+.lead-list,
+.pipeline-grid,
+.pipeline-cards {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.form-card label,
+.form-card input,
+.form-card textarea,
+.form-card button,
+.lead-item select {
+  display: block;
+  width: 100%;
+}
+
+.form-card label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.75rem;
+}
+
+.form-card input,
+.form-card textarea,
+.lead-item select {
+  margin-top: 0.35rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  font: inherit;
+}
+
+textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.85rem 1.25rem;
+}
+
+.secondary-button {
+  background: #0f172a;
+}
+
+.lead-item,
+.user-card {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pipeline-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.pipeline-stage {
+  background: #eff6ff;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.pipeline-stage header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.pipeline-card {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 0.85rem;
+}
+
+.error-banner {
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 960px) {
+  .hero,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
