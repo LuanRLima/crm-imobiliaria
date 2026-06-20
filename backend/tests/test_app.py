@@ -13,7 +13,7 @@ from app.main import create_app
 from app.services.bootstrap import seed_defaults
 
 ADMIN_EMAIL = "admin@crmimobiliaria.local"
-ADMIN_PASSWORD = "Admin123!"
+ADMIN_PASSWORD = "changeme"
 
 
 def build_client(database_url: str) -> TestClient:

@@ -40,6 +40,9 @@ def _get_rate_limit_key(request: Request, email: str) -> str:
 def _consume_login_attempt(request: Request, email: str) -> LoginAttemptWindow:
     """Manage the in-memory MVP login bucket and return its key, entries and timestamp."""
     settings = get_settings()
+    # MVP-only implementation: this bucket lives inside a single process, so it does not
+    # stay consistent across multiple instances/replicas. Replace it with Redis or another
+    # shared store before running multi-instance production deployments.
     limiter = getattr(request.app.state, "login_rate_limiter", {})
     request.app.state.login_rate_limiter = limiter
 

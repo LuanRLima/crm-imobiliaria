@@ -7,5 +7,6 @@ __pycache__/
 backend/.coverage
 backend/htmlcov/
 backend/.mypy_cache/
+backend/*.db
 frontend/node_modules/
 frontend/dist/

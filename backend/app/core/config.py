@@ -37,6 +37,19 @@ def _build_database_url() -> str:
     return "sqlite:///./crm.db"
 
 
+def _build_seed_admin_password() -> str:
+    configured_password = os.getenv("SEED_ADMIN_PASSWORD")
+    if configured_password:
+        return configured_password
+
+    if _environment_name() in {"production", "prod", "staging"}:
+        raise RuntimeError(
+            "SEED_ADMIN_PASSWORD deve ser configurada explicitamente fora do ambiente local."
+        )
+
+    return "changeme"
+
+
 @dataclass(frozen=True)
 class Settings:
     app_name: str = "CRM Imobiliária API"
@@ -47,7 +60,7 @@ class Settings:
     seed_admin_email: str = os.getenv(
         "SEED_ADMIN_EMAIL", "admin@crmimobiliaria.local"
     )
-    seed_admin_password: str = os.getenv("SEED_ADMIN_PASSWORD", "Admin123!")
+    seed_admin_password: str = _build_seed_admin_password()
     bcrypt_rounds: int = int(os.getenv("BCRYPT_ROUNDS", "12"))
     session_ttl_hours: int = int(os.getenv("SESSION_TTL_HOURS", "12"))
     login_rate_limit_attempts: int = int(os.getenv("LOGIN_RATE_LIMIT_ATTEMPTS", "5"))

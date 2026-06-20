@@ -131,7 +131,7 @@ Request:
 ```json
 {
   "email": "admin@crmimobiliaria.local",
-  "password": "Admin123!"
+  "password": "<SEED_ADMIN_PASSWORD>"
 }
 ```
 
@@ -232,6 +232,7 @@ Retorna board agrupado por etapa.
   - erros e mensagens claras?
   - impacto LGPD conhecido?
 - **Pipeline CI básico:** recomendado rodar `pytest`, `npm run lint` e `npm run build`.
+  Agora o repositório também inclui `.github/workflows/ci.yml` com validação automática de backend, frontend e auditoria de dependências.
 
 ## 11) Próximo passo prático
 
@@ -278,8 +279,8 @@ Retorna board agrupado por etapa.
    - aceite: endpoint público com proteção anti-spam básica.
 8. **Adicionar observabilidade**
    - aceite: logs estruturados e métricas HTTP.
-9. **Criar pipeline CI**
-   - aceite: lint, build e testes automáticos em PR.
+9. **Substituir rate limiter in-memory por Redis**
+   - aceite: login rate limit centralizado em storage compartilhado e pronto para multi-instance.
 10. **Preparar LGPD operacional**
     - aceite: consentimento, anonimização e política de retenção inicial.
 
@@ -316,9 +317,9 @@ npm run dev
 
 ### Credenciais seed
 - E-mail: `admin@crmimobiliaria.local`
-- Senha: `Admin123!`
+- Senha: valor definido em `SEED_ADMIN_PASSWORD` (o `.env.example` usa `changeme` apenas como placeholder local)
 
-> Use essas credenciais apenas para ambiente local. Em produção, substitua por um fluxo de provisionamento seguro.
+> Em produção, defina `SEED_ADMIN_PASSWORD` e demais segredos via GitHub Secrets, secret manager equivalente ou variáveis injetadas pelo provedor. Não reutilize o placeholder local.
 
 ## Testes e validação
 
