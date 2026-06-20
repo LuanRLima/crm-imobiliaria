@@ -48,7 +48,6 @@ def create_app(session_factory: sessionmaker | None = None) -> FastAPI:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "same-origin"
-        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
         return response
 
     @app.exception_handler(HTTPException)

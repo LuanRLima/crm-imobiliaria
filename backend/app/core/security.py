@@ -5,6 +5,8 @@ from secrets import token_bytes
 
 import bcrypt
 
+from app.core.config import get_settings
+
 BCRYPT_PREFIX = "bcrypt$"
 
 
@@ -13,7 +15,10 @@ def _ensure_bytes(value: str) -> bytes:
 
 
 def hash_password(password: str) -> str:
-    hashed = bcrypt.hashpw(_ensure_bytes(password), bcrypt.gensalt(rounds=12))
+    hashed = bcrypt.hashpw(
+        _ensure_bytes(password),
+        bcrypt.gensalt(rounds=get_settings().bcrypt_rounds),
+    )
     return f"{BCRYPT_PREFIX}{hashed.decode('utf-8')}"
 
 

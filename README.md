@@ -179,6 +179,7 @@ Retorna board agrupado por etapa.
 - login exige credenciais válidas.
 - login aplica rate limit por cliente/e-mail após falhas repetidas.
 - criação de etapa é restrita ao perfil `manager`.
+- hash de senha usa `bcrypt` com custo configurável por `BCRYPT_ROUNDS`.
 
 ### Códigos de erro padrão
 - `401` autenticação inválida.

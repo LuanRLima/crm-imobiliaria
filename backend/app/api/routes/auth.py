@@ -19,6 +19,7 @@ from app.db.models import AuthSession, User
 from app.schemas.auth import LoginRequest, TokenResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+# Prevent timing differences between existing and missing users during login failure paths.
 DUMMY_PASSWORD_HASH = hash_password("dummy-password")
 
 
@@ -29,7 +30,7 @@ def _get_rate_limit_key(request: Request, email: str) -> str:
 
 
 def _consume_login_attempt(request: Request, email: str) -> tuple[str, list[float], float]:
-    """Load and prune login attempts, then return the key, bucket and current time."""
+    """Manage the in-memory MVP login bucket and return its key, entries and timestamp."""
     settings = get_settings()
     limiter = getattr(request.app.state, "login_rate_limiter", {})
     request.app.state.login_rate_limiter = limiter
@@ -65,6 +66,7 @@ def login(
     stored_password_hash = user.password_hash if user else DUMMY_PASSWORD_HASH
     if user is None or not verify_password(payload.password, stored_password_hash):
         attempts.append(now)
+        del attempts[:-settings.login_rate_limit_attempts]
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciais inválidas.",

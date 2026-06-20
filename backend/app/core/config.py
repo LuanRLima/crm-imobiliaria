@@ -48,6 +48,7 @@ class Settings:
         "SEED_ADMIN_EMAIL", "admin@crmimobiliaria.local"
     )
     seed_admin_password: str = os.getenv("SEED_ADMIN_PASSWORD", "Admin123!")
+    bcrypt_rounds: int = int(os.getenv("BCRYPT_ROUNDS", "12"))
     session_ttl_hours: int = int(os.getenv("SESSION_TTL_HOURS", "12"))
     login_rate_limit_attempts: int = int(os.getenv("LOGIN_RATE_LIMIT_ATTEMPTS", "5"))
     login_rate_limit_window_seconds: int = int(
