@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.dependencies import get_current_user, get_db
@@ -84,7 +85,10 @@ def create_lead(
             payload={"source": lead.source, "stage": initial_stage.name},
         )
         db.commit()
-    except Exception:
+    except HTTPException:
+        db.rollback()
+        raise
+    except SQLAlchemyError:
         db.rollback()
         raise
 

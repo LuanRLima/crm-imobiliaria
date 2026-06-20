@@ -3,6 +3,7 @@ from time import monotonic
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import delete, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_auth_session, get_current_user, get_db
@@ -56,15 +57,15 @@ def login(
 ) -> TokenResponse:
     settings = get_settings()
     key, attempts, now = _consume_login_attempt(request, payload.email)
-    with db.begin():
-        user = db.scalar(select(User).where(User.email == payload.email.lower()))
-        if user is None or not verify_password(payload.password, user.password_hash):
-            attempts.append(now)
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Credenciais inválidas.",
-            )
+    user = db.scalar(select(User).where(User.email == payload.email.lower()))
+    if user is None or not verify_password(payload.password, user.password_hash):
+        attempts.append(now)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciais inválidas.",
+        )
 
+    try:
         db.execute(
             delete(AuthSession).where(AuthSession.expires_at <= datetime.now(UTC))
         )
@@ -81,6 +82,10 @@ def login(
                 expires_at=expires_at,
             )
         )
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        raise
 
     _reset_login_attempts(request, key)
     return TokenResponse(
