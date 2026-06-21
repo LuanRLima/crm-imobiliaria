@@ -12,7 +12,7 @@
 
 O repositório inclui `render.yaml` apenas para o banco e o backend. O frontend
 é publicado gratuitamente no GitHub Pages pelo workflow
-`.github/workflows/deploy.yml` depois que a CI passa na `main`.
+`.github/workflows/deploy.yml` depois que a CI passa na `master`.
 
 ### 1. Crie uma conta no Render
 
@@ -54,7 +54,7 @@ Após o primeiro deploy bem-sucedido:
 ### 5. Deploy automático via GitHub Actions
 
 O workflow `.github/workflows/deploy.yml` dispara automaticamente toda vez
-que o workflow `CI` passa na branch `main`. Ele faz duas coisas:
+que o workflow `CI` passa na branch `master`. Ele faz duas coisas:
 
 - chama o deploy hook do backend no Render
 - recompila o frontend e publica no GitHub Pages
@@ -65,10 +65,18 @@ Para ativá-lo:
 2. No painel do backend no Render, vá em **Settings → Deploy Hook** e copie a URL gerada.
 3. No repositório GitHub, vá em **Settings → Secrets and variables → Actions** e adicione:
    - **Secret** `RENDER_BACKEND_DEPLOY_HOOK` → URL do hook do backend
+   - **Variable** `BACKEND_PUBLIC_URL` → URL pública do backend sem `/api/v1` (ex.: `https://crm-imobiliaria-backend.onrender.com`)
    - **Variable** `FRONTEND_API_URL` → URL pública do backend + `/api/v1`
    - **Variable** `PAGES_BASE_PATH` → opcional; use apenas se o frontend precisar publicar em um subdiretório diferente do padrão `/<repositório>/`. Em custom domain, deixe em branco ou use `/`.
 
-A partir daí, todo merge na `main` com CI verde dispara o deploy automaticamente.
+A partir daí, todo merge na `master` com CI verde dispara o deploy automaticamente.
+
+Depois do publish, o workflow também executa um job `Validate Deploy` para:
+
+- aguardar o backend responder em `BACKEND_PUBLIC_URL/health`
+- confirmar que o website publicado no GitHub Pages carregou o HTML esperado
+
+Se quiser a explicação completa das variáveis, da ordem de configuração e dos smoke tests locais/pós-deploy, consulte `VALIDACAO_DEPLOY_URLS_E_TESTES.md`.
 
 ### Limitações do plano gratuito
 
@@ -109,13 +117,13 @@ A partir daí, todo merge na `main` com CI verde dispara o deploy automaticament
 3. Se a falha vier de migration incompatível, restaure o backup do banco e só então refaça o deploy da versão anterior.
 4. Revalide login e fluxo principal após o rollback.
 
-## Proteções obrigatórias na `main`
+## Proteções obrigatórias na `master`
 
 Configure em **Settings → Branches → Branch protection rules**:
 
 - exigir sucesso do workflow `CI` antes do merge
 - bloquear merge quando qualquer status check obrigatório falhar
-- restringir merge direto na `main` para passar sempre por pull request
+- restringir merge direto na `master` para passar sempre por pull request
 
 ## Segredos
 
