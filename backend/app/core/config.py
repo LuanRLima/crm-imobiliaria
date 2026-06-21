@@ -15,10 +15,24 @@ def _environment_name() -> str:
     return os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "development")).lower()
 
 
+def _normalize_database_url(url: str) -> str:
+    """Normaliza o scheme da DATABASE_URL para o driver psycopg3.
+
+    Plataformas como o Render fornecem URLs com scheme ``postgres://`` ou
+    ``postgresql://``, mas o SQLAlchemy + psycopg3 exige
+    ``postgresql+psycopg://``.
+    """
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url[len("postgres://"):]
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url[len("postgresql://"):]
+    return url
+
+
 def _build_database_url() -> str:
     database_url = os.getenv("DATABASE_URL")
     if database_url:
-        return database_url
+        return _normalize_database_url(database_url)
 
     host = os.getenv("POSTGRES_HOST")
     database = os.getenv("POSTGRES_DB")

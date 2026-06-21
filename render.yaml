@@ -1,0 +1,52 @@
+databases:
+  - name: crm-imobiliaria-db
+    plan: free
+    databaseName: crm_imobiliaria
+    user: crm
+
+services:
+  - type: web
+    name: crm-imobiliaria-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: crm-imobiliaria-db
+          property: connectionString
+      - key: APP_ENV
+        value: production
+      - key: CORS_ORIGINS
+        # Preencha com a URL do frontend após o primeiro deploy,
+        # ex.: https://crm-imobiliaria-frontend.onrender.com
+        sync: false
+      - key: SEED_ADMIN_EMAIL
+        value: admin@crmimobiliaria.local
+      - key: SEED_ADMIN_PASSWORD
+        # Defina uma senha forte no painel do Render antes do primeiro deploy.
+        sync: false
+      - key: BCRYPT_ROUNDS
+        # Padrão da aplicação: 12. Aumente em produção de alta carga se necessário.
+        value: "12"
+      - key: SESSION_TTL_HOURS
+        value: "12"
+      - key: LOGIN_RATE_LIMIT_ATTEMPTS
+        value: "5"
+      - key: LOGIN_RATE_LIMIT_WINDOW_SECONDS
+        value: "300"
+
+  - type: web
+    name: crm-imobiliaria-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    plan: free
+    envVars:
+      - key: VITE_API_URL
+        # Preencha com a URL do backend após o primeiro deploy,
+        # ex.: https://crm-imobiliaria-backend.onrender.com/api/v1
+        sync: false
