@@ -1,0 +1,74 @@
+import os
+from dataclasses import dataclass, field
+from functools import lru_cache
+
+
+def _build_cors_origins() -> list[str]:
+    configured_origins = os.getenv("CORS_ORIGINS")
+    if configured_origins:
+        return [origin.strip() for origin in configured_origins.split(",") if origin.strip()]
+
+    return ["http://localhost:5173", "http://127.0.0.1:5173"]
+
+
+def _environment_name() -> str:
+    return os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "development")).lower()
+
+
+def _build_database_url() -> str:
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        return database_url
+
+    host = os.getenv("POSTGRES_HOST")
+    database = os.getenv("POSTGRES_DB")
+    user = os.getenv("POSTGRES_USER")
+    password = os.getenv("POSTGRES_PASSWORD")
+    port = os.getenv("POSTGRES_PORT", "5432")
+
+    if host and database and user and password:
+        return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{database}"
+
+    if _environment_name() in {"production", "prod", "staging"}:
+        raise RuntimeError(
+            "DATABASE_URL ou variáveis POSTGRES_* são obrigatórias fora do ambiente local."
+        )
+
+    return "sqlite:///./crm.db"
+
+
+def _build_seed_admin_password() -> str:
+    configured_password = os.getenv("SEED_ADMIN_PASSWORD")
+    if configured_password:
+        return configured_password
+
+    if _environment_name() in {"production", "prod", "staging"}:
+        raise RuntimeError(
+            "SEED_ADMIN_PASSWORD deve ser configurada explicitamente fora do ambiente local."
+        )
+
+    return "changeme"
+
+
+@dataclass(frozen=True)
+class Settings:
+    app_name: str = "CRM Imobiliária API"
+    app_env: str = _environment_name()
+    api_prefix: str = "/api/v1"
+    database_url: str = _build_database_url()
+    cors_origins: list[str] = field(default_factory=_build_cors_origins)
+    seed_admin_email: str = os.getenv(
+        "SEED_ADMIN_EMAIL", "admin@crmimobiliaria.local"
+    )
+    seed_admin_password: str = _build_seed_admin_password()
+    bcrypt_rounds: int = int(os.getenv("BCRYPT_ROUNDS", "12"))
+    session_ttl_hours: int = int(os.getenv("SESSION_TTL_HOURS", "12"))
+    login_rate_limit_attempts: int = int(os.getenv("LOGIN_RATE_LIMIT_ATTEMPTS", "5"))
+    login_rate_limit_window_seconds: int = int(
+        os.getenv("LOGIN_RATE_LIMIT_WINDOW_SECONDS", "300")
+    )
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
