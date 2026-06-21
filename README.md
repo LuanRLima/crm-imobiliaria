@@ -193,13 +193,13 @@ Retorna board agrupado por etapa.
 
 - **Unitários:** regras de segurança, validações e serviços.
 - **Integração:** login, criação de lead, listagem e movimentação no pipeline.
-- **E2E:** próximo passo com Playwright/Cypress quando fluxos de UI amadurecerem.
+- **E2E:** smoke tests com Playwright para validar login, criação de lead e atualização do pipeline após o build.
 - **Primeiros cenários implementados agora:**
   - healthcheck
   - login com sucesso/erro
   - cadastro/listagem de leads
   - movimentação entre etapas
-- **Ferramentas:** `pytest` no backend; frontend ainda sem runner de testes para evitar dependências desnecessárias no primeiro corte.
+- **Ferramentas:** `pytest` no backend e `Playwright` para smoke tests de backend + frontend pós-build.
 
 ## 9) Plano de execução em 12 semanas
 
@@ -231,8 +231,8 @@ Retorna board agrupado por etapa.
   - migration compatível?
   - erros e mensagens claras?
   - impacto LGPD conhecido?
-- **Pipeline CI básico:** recomendado rodar `pytest`, `npm run lint` e `npm run build`.
-  Agora o repositório também inclui `.github/workflows/ci.yml` com validação automática de backend, frontend e auditoria de dependências.
+- **Pipeline CI básico:** recomendado rodar `pytest`, `npm run lint`, `npm run build` e smoke tests E2E.
+  Agora o repositório também inclui `.github/workflows/ci.yml` com validação automática de backend, frontend, smoke tests e auditoria de dependências.
 
 ## 11) Próximo passo prático
 
