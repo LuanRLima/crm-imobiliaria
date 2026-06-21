@@ -20,8 +20,8 @@ services:
       - key: APP_ENV
         value: production
       - key: CORS_ORIGINS
-        # Preencha com a URL do frontend após o primeiro deploy,
-        # ex.: https://crm-imobiliaria-frontend.onrender.com
+        # Preencha com a URL do frontend publicado no GitHub Pages,
+        # ex.: https://luanrlima.github.io/crm-imobiliaria
         sync: false
       - key: SEED_ADMIN_EMAIL
         value: admin@crmimobiliaria.local
@@ -37,16 +37,3 @@ services:
         value: "5"
       - key: LOGIN_RATE_LIMIT_WINDOW_SECONDS
         value: "300"
-
-  - type: web
-    name: crm-imobiliaria-frontend
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm ci && npm run build
-    staticPublishPath: ./dist
-    plan: free
-    envVars:
-      - key: VITE_API_URL
-        # Preencha com a URL do backend após o primeiro deploy,
-        # ex.: https://crm-imobiliaria-backend.onrender.com/api/v1
-        sync: false

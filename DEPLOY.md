@@ -8,39 +8,40 @@
 
 ---
 
-## Deploy no Render (recomendado para testar rapidamente)
+## Deploy com backend no Render e frontend no GitHub Pages
 
-O repositório inclui `render.yaml` com todos os serviços declarados — basta
-conectar o repositório no Render e preencher dois segredos.
+O repositório inclui `render.yaml` apenas para o banco e o backend. O frontend
+é publicado gratuitamente no GitHub Pages pelo workflow
+`.github/workflows/deploy.yml` depois que a CI passa na `main`.
 
 ### 1. Crie uma conta no Render
 
-Acesse <https://render.com> e crie uma conta gratuita (plano Free inclui
-banco PostgreSQL, backend Python e frontend estático).
+Acesse <https://render.com> e crie uma conta gratuita para o banco PostgreSQL
+e o backend Python.
 
 ### 2. Conecte o repositório
 
 1. No painel do Render, clique em **New → Blueprint**.
 2. Autorize o acesso ao GitHub e selecione o repositório `crm-imobiliaria`.
-3. O Render detecta o `render.yaml` automaticamente e lista os três serviços:
-   `crm-imobiliaria-db`, `crm-imobiliaria-backend` e `crm-imobiliaria-frontend`.
+3. O Render detecta o `render.yaml` automaticamente e lista dois serviços:
+   `crm-imobiliaria-db` e `crm-imobiliaria-backend`.
 
 ### 3. Defina os segredos obrigatórios
 
 Antes de confirmar o deploy, preencha as variáveis marcadas como `sync: false`:
 
-| Serviço  | Variável               | O que colocar                                                  |
-|----------|------------------------|----------------------------------------------------------------|
-| backend  | `SEED_ADMIN_PASSWORD`  | Uma senha forte (mín. 8 chars, letras + números + especial)    |
-| backend  | `CORS_ORIGINS`         | URL do frontend — preencha **após** o primeiro deploy do front |
-| frontend | `VITE_API_URL`         | URL do backend + `/api/v1` — preencha após o deploy do backend |
+| Serviço | Variável              | O que colocar                                                         |
+|---------|-----------------------|-----------------------------------------------------------------------|
+| backend | `SEED_ADMIN_PASSWORD` | Uma senha forte (mín. 8 chars, letras + números + especial)           |
+| backend | `CORS_ORIGINS`        | URL do frontend no GitHub Pages — preencha **após** o primeiro deploy |
 
 **Ordem sugerida:**
 1. Deploy o banco e o backend primeiro (deixe `CORS_ORIGINS` em branco por ora).
 2. Copie a URL pública do backend (ex.: `https://crm-imobiliaria-backend.onrender.com`).
-3. Preencha `VITE_API_URL` no frontend como `https://crm-imobiliaria-backend.onrender.com/api/v1`.
-4. Copie a URL pública do frontend (ex.: `https://crm-imobiliaria-frontend.onrender.com`).
-5. Preencha `CORS_ORIGINS` no backend com essa URL e reimplante o backend.
+3. No GitHub, crie a variável `FRONTEND_API_URL` com o valor `https://crm-imobiliaria-backend.onrender.com/api/v1`.
+4. Publique o frontend no GitHub Pages.
+5. Copie a URL pública do frontend (ex.: `https://luanrlima.github.io/crm-imobiliaria`).
+6. Preencha `CORS_ORIGINS` no backend com essa URL e reimplante o backend.
 
 ### 4. Credenciais de acesso
 
@@ -53,14 +54,18 @@ Após o primeiro deploy bem-sucedido:
 ### 5. Deploy automático via GitHub Actions
 
 O workflow `.github/workflows/deploy.yml` dispara automaticamente toda vez
-que o workflow `CI` passa na branch `main`. Para ativá-lo:
+que o workflow `CI` passa na branch `main`. Ele faz duas coisas:
 
-1. No painel de cada serviço Render, vá em **Settings → Deploy Hook** e copie
-   a URL gerada.
-2. No repositório GitHub, vá em **Settings → Secrets and variables → Actions**
-   e adicione:
-   - `RENDER_BACKEND_DEPLOY_HOOK` → URL do hook do backend
-   - `RENDER_FRONTEND_DEPLOY_HOOK` → URL do hook do frontend
+- chama o deploy hook do backend no Render
+- recompila o frontend e publica no GitHub Pages
+
+Para ativá-lo:
+
+1. No GitHub, vá em **Settings → Pages** e selecione **Build and deployment → Source → GitHub Actions**.
+2. No painel do backend no Render, vá em **Settings → Deploy Hook** e copie a URL gerada.
+3. No repositório GitHub, vá em **Settings → Secrets and variables → Actions** e adicione:
+   - **Secret** `RENDER_BACKEND_DEPLOY_HOOK` → URL do hook do backend
+   - **Variable** `FRONTEND_API_URL` → URL pública do backend + `/api/v1`
 
 A partir daí, todo merge na `main` com CI verde dispara o deploy automaticamente.
 
@@ -75,7 +80,9 @@ A partir daí, todo merge na `main` com CI verde dispara o deploy automaticament
   Consulte a [documentação de backups do Render](https://render.com/docs/postgresql-backups) para mais detalhes.
 - O backend pode **adormecer** após 15 min de inatividade (primeira requisição
   pode demorar ~30 s para acordar).
-- Para uso contínuo, considere o plano pago ($7/mês por serviço).
+- O GitHub Pages publica o frontend em `https://<usuario>.github.io/<repositorio>`.
+- Para usar o GitHub Pages sem custo, deixe o repositório público.
+- Para uso contínuo, considere migrar o backend para um plano pago ou outro host se precisar de mais disponibilidade.
 
 ---
 

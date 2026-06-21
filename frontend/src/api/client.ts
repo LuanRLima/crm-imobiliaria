@@ -1,6 +1,6 @@
 import type { Lead, LoginResponse, PipelineBoard, PipelineStage, User } from "../types"
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1"
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1"
 
 type RequestOptions = {
   method?: "GET" | "POST" | "PATCH"
