@@ -29,6 +29,7 @@ services:
         # Defina uma senha forte no painel do Render antes do primeiro deploy.
         sync: false
       - key: BCRYPT_ROUNDS
+        # Padrão da aplicação: 12. Aumente em produção de alta carga se necessário.
         value: "12"
       - key: SESSION_TTL_HOURS
         value: "12"

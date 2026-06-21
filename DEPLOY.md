@@ -66,7 +66,13 @@ A partir daí, todo merge na `main` com CI verde dispara o deploy automaticament
 
 ### Limitações do plano gratuito
 
-- O banco PostgreSQL gratuito **expira após 90 dias** — faça backup antes.
+- O banco PostgreSQL gratuito **expira após 90 dias** — faça backup antes com:
+  ```bash
+  pg_dump "$(render env get DATABASE_URL --service crm-imobiliaria-backend)" \
+    > backup_$(date +%Y%m%d).sql
+  ```
+  Ou pelo painel: **Dashboard → crm-imobiliaria-db → Backups**.
+  Consulte a [documentação de backups do Render](https://render.com/docs/postgresql-backups) para mais detalhes.
 - O backend pode **adormecer** após 15 min de inatividade (primeira requisição
   pode demorar ~30 s para acordar).
 - Para uso contínuo, considere o plano pago ($7/mês por serviço).
