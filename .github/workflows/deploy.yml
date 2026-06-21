@@ -32,7 +32,8 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     env:
       FRONTEND_API_URL: ${{ vars.FRONTEND_API_URL }}
-      VITE_BASE_PATH: /${{ github.event.repository.name }}/
+      PAGES_BASE_PATH: ${{ vars.PAGES_BASE_PATH }}
+      REPOSITORY_NAME: ${{ github.event.repository.name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -59,6 +60,19 @@ jobs:
             echo "Defina a variável FRONTEND_API_URL em Settings > Secrets and variables > Actions."
             exit 1
           }
+
+          if [ -n "$PAGES_BASE_PATH" ]; then
+            case "$PAGES_BASE_PATH" in
+              /*/) ;;
+              *)
+                echo "PAGES_BASE_PATH deve começar e terminar com /."
+                exit 1
+                ;;
+            esac
+            echo "VITE_BASE_PATH=$PAGES_BASE_PATH" >> "$GITHUB_ENV"
+          else
+            echo "VITE_BASE_PATH=/$REPOSITORY_NAME/" >> "$GITHUB_ENV"
+          fi
 
       - name: Build frontend
         working-directory: frontend

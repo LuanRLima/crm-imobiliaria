@@ -66,6 +66,7 @@ Para ativá-lo:
 3. No repositório GitHub, vá em **Settings → Secrets and variables → Actions** e adicione:
    - **Secret** `RENDER_BACKEND_DEPLOY_HOOK` → URL do hook do backend
    - **Variable** `FRONTEND_API_URL` → URL pública do backend + `/api/v1`
+   - **Variable** `PAGES_BASE_PATH` → opcional; use se quiser sobrescrever a base padrão `/<repositório>/` (ex.: custom domain)
 
 A partir daí, todo merge na `main` com CI verde dispara o deploy automaticamente.
 
