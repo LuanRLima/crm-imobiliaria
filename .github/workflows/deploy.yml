@@ -57,7 +57,7 @@ jobs:
       - name: Validate frontend variables
         run: |
           test -n "$FRONTEND_API_URL" || {
-            echo "Defina a variável FRONTEND_API_URL em Settings > Secrets and variables > Actions."
+            echo "Define the FRONTEND_API_URL variable in Settings > Secrets and variables > Actions."
             exit 1
           }
 
@@ -65,7 +65,7 @@ jobs:
             case "$PAGES_BASE_PATH" in
               /*/) ;;
               *)
-                echo "PAGES_BASE_PATH deve começar e terminar com /."
+                echo "PAGES_BASE_PATH must start and end with /."
                 exit 1
                 ;;
             esac
