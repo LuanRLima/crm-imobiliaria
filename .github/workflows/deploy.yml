@@ -8,6 +8,12 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: deploy-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
 
 jobs:
   deploy-backend:
@@ -21,11 +27,79 @@ jobs:
             -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}"
 
   deploy-frontend:
-    name: Deploy Frontend
+    name: Build Frontend
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    env:
+      FRONTEND_API_URL: ${{ vars.FRONTEND_API_URL }}
+      PAGES_BASE_PATH: ${{ vars.PAGES_BASE_PATH }}
+      REPOSITORY_NAME: ${{ github.event.repository.name }}
     steps:
-      - name: Trigger Render Frontend Deploy
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Validate frontend variables
         run: |
-          curl --fail-with-body --silent \
-            -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}"
+          test -n "$FRONTEND_API_URL" || {
+            echo "Define the FRONTEND_API_URL variable in Settings > Secrets and variables > Actions."
+            exit 1
+          }
+
+          if [ -n "$PAGES_BASE_PATH" ]; then
+            if [ "${PAGES_BASE_PATH#"/"}" = "$PAGES_BASE_PATH" ]; then
+              echo "PAGES_BASE_PATH must start with /."
+              exit 1
+            fi
+            if [ "${PAGES_BASE_PATH%"/"}" = "$PAGES_BASE_PATH" ]; then
+              echo "PAGES_BASE_PATH must end with /."
+              exit 1
+            fi
+            if [ "$PAGES_BASE_PATH" = "/" ]; then
+              echo "VITE_BASE_PATH=/" >> "$GITHUB_ENV"
+            else
+              echo "VITE_BASE_PATH=$PAGES_BASE_PATH" >> "$GITHUB_ENV"
+            fi
+          else
+            echo "VITE_BASE_PATH=/$REPOSITORY_NAME/" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ env.FRONTEND_API_URL }}
+          VITE_BASE_PATH: ${{ env.VITE_BASE_PATH }}
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: frontend/dist
+
+  publish-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    needs: deploy-frontend
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
