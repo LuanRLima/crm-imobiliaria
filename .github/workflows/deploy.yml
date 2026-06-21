@@ -19,8 +19,18 @@ jobs:
   deploy-backend:
     name: Deploy Backend
     runs-on: ubuntu-latest
+    environment: "master - crm-imobiliaria-backend"
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - name: Validate backend deploy hook
+        env:
+          RENDER_BACKEND_DEPLOY_HOOK: ${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}
+        run: |
+          test -n "$RENDER_BACKEND_DEPLOY_HOOK" || {
+            echo "::error::Missing RENDER_BACKEND_DEPLOY_HOOK. Configure it in Settings > Environments > master - crm-imobiliaria-backend > Secrets, or add it as a repository Actions secret."
+            exit 1
+          }
+
       - name: Trigger Render Backend Deploy
         run: |
           curl --fail-with-body --silent \

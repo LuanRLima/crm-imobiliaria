@@ -63,8 +63,10 @@ Para ativá-lo:
 
 1. No GitHub, vá em **Settings → Pages** e selecione **Build and deployment → Source → GitHub Actions**.
 2. No painel do backend no Render, vá em **Settings → Deploy Hook** e copie a URL gerada.
-3. No repositório GitHub, vá em **Settings → Secrets and variables → Actions** e adicione:
-   - **Secret** `RENDER_BACKEND_DEPLOY_HOOK` → URL do hook do backend
+3. No GitHub, configure o hook do backend em **um** destes locais:
+   - **Recomendado:** **Settings → Environments → `master - crm-imobiliaria-backend` → Secrets** → **Secret** `RENDER_BACKEND_DEPLOY_HOOK`
+   - **Alternativa:** **Settings → Secrets and variables → Actions** → **Secret** `RENDER_BACKEND_DEPLOY_HOOK`
+4. Ainda em **Settings → Secrets and variables → Actions**, adicione:
    - **Variable** `BACKEND_PUBLIC_URL` → URL pública do backend sem `/api/v1` (ex.: `https://crm-imobiliaria-backend.onrender.com`)
    - **Variable** `FRONTEND_API_URL` → URL pública do backend + `/api/v1`
    - **Variable** `PAGES_BASE_PATH` → opcional; use apenas se o frontend precisar publicar em um subdiretório diferente do padrão `/<repositório>/`. Em custom domain, deixe em branco ou use `/`.
